@@ -56,7 +56,8 @@ class MiddleburyDataset(Dataset):
             for i in range(1, 5): 
                 df = os.path.join(self.datapath, cate, "disp0.pfm")
                 tp = os.path.join(self.datapath, cate, "L%s"%i)
-                if not os.path.exists(os.path.join(tp, 'im0ef.png')):
+                if not os.path.isfile(os.path.join(tp, 'im0e0.png')):
+                    print(os.path.join(tp, 'im0e0.png'))
                     continue
                 try:
                     names = os.listdir(tp)

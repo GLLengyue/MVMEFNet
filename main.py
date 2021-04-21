@@ -45,7 +45,7 @@ l = [
 BATCH_SIZE = 1
 LR = 1e-3
 
-train_dataset = MiddleburyDataset("/home/zhong/disk/middlebury", l,
+train_dataset = MiddleburyDataset(os.path.expanduser('~/disk/middlebury'), l,
                             crop_height=256, crop_width=512)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
@@ -53,11 +53,18 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE,
 model = MVMEFNet()
 model = model.cuda()
 
+model_path = './savepoints/1100.pkl'
+if os.path.exists(model_path):
+    model_dict = torch.load(model_path)
+    model.load_state_dict(model_dict)
+    print('loading dict')
+
+
 L1loss = nn.SmoothL1Loss()
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
-for epoch in range(0, 10000):
+for epoch in range(1101, 10000):
 
     e_loss = 0
     count = 0
@@ -98,7 +105,7 @@ for epoch in range(0, 10000):
         e_MSE += MSE
         count+=1
 
-        print("\r[Epoch %d][Loss: %7f][PSNR : %7f][MSE : %7f]" % (epoch, g_loss.item(), PSNR, e_MSE), end='')
+        print("\r[Epoch %d][Loss: %7f][PSNR : %7f][MSE : %7f]" % (epoch, g_loss.item(), PSNR, MSE), end='')
 
         g_loss.backward()
         optimizer.step()
