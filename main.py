@@ -48,12 +48,13 @@ LR = 1e-3
 train_dataset = MiddleburyDataset(os.path.expanduser('~/disk/middlebury'), l,
                             crop_height=256, crop_width=512)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
 model = MVMEFNet()
 model = model.cuda()
 
-model_path = './savepoints/1100.pkl'
+save_num = 1100
+model_path = './savepoints/%d.pkl'%save_num
 if os.path.exists(model_path):
     model_dict = torch.load(model_path)
     model.load_state_dict(model_dict)
@@ -64,7 +65,7 @@ L1loss = nn.SmoothL1Loss()
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
-for epoch in range(1101, 10000):
+for epoch in range(save_num+1, 10000):
 
     e_loss = 0
     count = 0
@@ -94,19 +95,19 @@ for epoch in range(1101, 10000):
         # calculate disp MSE
         MSE = batch_mse(pred3[mask], disp[mask])
 
-
         # loss aggregation
         g_loss = L1loss(result[:,:,:,:256], right_gt[:,:,:,:256])
         g_loss += L1loss(pred3[mask], disp[mask])
         g_loss += L1loss(w_imgL_o[:,:,:,:256], right_o[:,:,:,:256])
 
-        e_loss += g_loss.item()
-        e_PSNR += PSNR
-        e_MSE += MSE
-        count+=1
-
-        print("\r[Epoch %d][Loss: %7f][PSNR : %7f][MSE : %7f]" % (epoch, g_loss.item(), PSNR, MSE), end='')
-
+        if not np.isnan(MSE):
+            e_loss += g_loss.item()
+            e_PSNR += PSNR
+            e_MSE += MSE
+            count+=1
+            print("\r[Epoch %d][Loss: %7f][PSNR : %7f][MSE : %7f]" % (epoch, g_loss.item(), PSNR, MSE), end='')
+        # else:
+            # print(disp[mask])
         g_loss.backward()
         optimizer.step()
     e_loss = e_loss/count
