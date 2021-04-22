@@ -80,7 +80,7 @@ for step, sample in enumerate(test_loader):
     
 
     PIL.Image.fromarray(np.uint8(w_imgL_o.cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_w_imgL_o.png'%step)
-    PIL.Image.fromarray(np.uint8(result.cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_result.png'%step)
+    PIL.Image.fromarray(np.uint8(torch.clamp(result, 0., 1.).cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_result.png'%step)
     PIL.Image.fromarray(np.uint8(pred3.cpu().numpy()[0])).save('./test_out/%d_pred.png'%step)
 
     mask = (disp < 192) & (disp > 0)
