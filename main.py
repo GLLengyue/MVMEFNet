@@ -45,15 +45,17 @@ l = [
 BATCH_SIZE = 1
 LR = 1e-3
 
+MAX_DISP=370
+
 train_dataset = MiddleburyDataset(os.path.expanduser('~/disk/middlebury'), l,
                             crop_height=256, crop_width=512)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
-model = MVMEFNet()
+model = MVMEFNet(max_disp=MAX_DISP)
 model = model.cuda()
 
-save_num = 1100
+save_num = 2200
 model_path = './savepoints/%d.pkl'%save_num
 if os.path.exists(model_path):
     model_dict = torch.load(model_path)
@@ -78,7 +80,7 @@ for epoch in range(save_num+1, 10000):
         left, right, left_g, right_g, left_o, right_o, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), right_gt.cuda(), disp.cuda()
         
         # DISP MASK
-        mask = (disp < 192) & (disp > 0)
+        mask = (disp <= MAX_DISP) & (disp >= 0)
 
         # -----------------
         #  Train model

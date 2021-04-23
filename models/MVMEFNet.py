@@ -36,9 +36,9 @@ def warp(image, disp):
     return image_warped
 
 class MVMEFNet(nn.Module):
-    def __init__(self):
+    def __init__(self, max_disp):
         super(MVMEFNet, self).__init__()
-        self.disp_net = PSMNet()
+        self.disp_net = PSMNet(maxdisp=max_disp)
         self.fusion_net = AHDRNet()
     
     def forward(self, imgL_d, imgR_d, imgL_g, imgR_g, imgL_o, imgR_o):
