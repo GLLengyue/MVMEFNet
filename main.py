@@ -22,10 +22,10 @@ l = [
     # 'Bicycle1-perfect',
     'Cable-perfect',
     # 'Classroom1-perfect',
-    'Couch-perfect',
-    'Flowers-perfect',
-    'Jadeplant-perfect',
-    'Mask-perfect',
+    'Couch-perfect', # 630
+    'Flowers-perfect', # 640
+    'Jadeplant-perfect', # 640
+    'Mask-perfect', # 460
     'Motorcycle-perfect',
     # 'Piano-perfect',
     'Pipes-perfect',
@@ -33,13 +33,13 @@ l = [
     'Playtable-perfect',
     'Recycle-perfect',
     'Shelves-perfect',
-    'Shopvac-perfect',
+    # 'Shopvac-perfect', # 1110
     'Sticks-perfect',
-    'Storage-perfect',
+    'Storage-perfect', # 650
     'Sword1-perfect',
     'Sword2-perfect',
     'Umbrella-perfect',
-    'Vintage-perfect'
+    'Vintage-perfect' # 740
  ]
 
 BATCH_SIZE = 1
