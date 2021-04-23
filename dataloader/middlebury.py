@@ -5,6 +5,8 @@ from PIL import Image
 import numpy as np
 import torchvision.transforms as transforms
 import cv2
+cv2.setNumThreads(0)
+cv2.ocl.setUseOpenCL(False)
 
 from .data_io import get_transform, read_all_lines, pfm_imread
 
