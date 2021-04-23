@@ -95,6 +95,8 @@ class MiddleburyDataset(Dataset):
         left_disp = self.crop_disp(left_disp[0])
         left_disp = cv2.resize(left_disp, None, fx=0.5, fy=0.5)
         left_disp = left_disp/2
+        mask = (left_disp>0) & (left_disp<1000)
+        print('max_disp: %d'%(np.max(left_disp[mask])))
 
         right_gt_img = self.load_image(os.path.join(self.datapath, self.right_gt_filenames[index]))
         right_gt_img = right_gt_img.resize((right_gt_img.size[0]//2, right_gt_img.size[1]//2))
