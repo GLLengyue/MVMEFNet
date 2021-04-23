@@ -96,6 +96,11 @@ class AttentionNetwork(nn.Module):
         map1 = self.attention(feature1, refer)
         # map2 = self.attention(feature2, refer)
         feature_1 = torch.mul(feature1, map1)
+        tmp = map1.cpu().numpy()[0]
+        import numpy as np
+        import cv2
+        tmp = np.mean(tmp, axis=0)
+        cv2.imwrite('map.png', tmp*255)
         # feature_2 = torch.mul(feature2, map2)
         # out = torch.cat([feature_1, refer, feature_2], dim=1)
         out = torch.cat([feature_1, refer], dim=1)
