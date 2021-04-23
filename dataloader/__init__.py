@@ -1,1 +1,2 @@
 from .middlebury import MiddleburyDataset
+from .middlebury_inverse import MiddleburyDataset_I

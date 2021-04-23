@@ -1,4 +1,5 @@
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import random
 import torch
 import torch.nn as nn
@@ -9,7 +10,7 @@ import numpy as np
 import time
 import math
 from math import exp
-from dataloader import MiddleburyDataset
+from dataloader import MiddleburyDataset, MiddleburyDataset_I
 from models import MVMEFNet
 from utils import batch_PSNR, batch_mse
 import cv2
@@ -47,12 +48,15 @@ l = [
 BATCH_SIZE = 1
 LR = 1e-3
 
-test_dataset = MiddleburyDataset(os.path.expanduser("~/disk/middlebury"), l,
+# test_dataset = MiddleburyDataset(os.path.expanduser("~/disk/middlebury"), l,
+#                             crop_height=768, crop_width=1408)
+
+test_dataset = MiddleburyDataset_I(os.path.expanduser("~/disk/middlebury"), l,
                             crop_height=768, crop_width=1408)
 
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
 
-model = MVMEFNet()
+model = MVMEFNet(max_disp=192)
 model = model.cuda()
 
 save_num = 1100
@@ -76,12 +80,13 @@ for step, sample in enumerate(test_loader):
     left, right, left_g, right_g, left_o, right_o, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), right_gt.cuda(), disp.cuda()
 
     with torch.no_grad():
-        pred1, pred2, pred3, w_imgL_o, result = model(left, right, left_g, right_g, left_o, right_o)
+        pred1, pred2, pred3, w_imgL_o, result, a_map = model(left, right, left_g, right_g, left_o, right_o)
     
 
     PIL.Image.fromarray(np.uint8(w_imgL_o.cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_w_imgL_o.png'%step)
     PIL.Image.fromarray(np.uint8(torch.clamp(result, 0., 1.).cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_result.png'%step)
     PIL.Image.fromarray(np.uint8(pred3.cpu().numpy()[0])).save('./test_out/%d_pred.png'%step)
+    PIL.Image.fromarray(np.uint8(255*np.mean(a_map.cpu().numpy()[0], axis=0))).save('./test_out/%d_map.png'%step)
 
     mask = (disp < 192) & (disp > 0)
 
