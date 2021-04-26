@@ -48,11 +48,11 @@ l = [
 BATCH_SIZE = 1
 LR = 1e-3
 
-# test_dataset = MiddleburyDataset(os.path.expanduser("~/disk/middlebury"), l,
-#                             crop_height=768, crop_width=1408)
-
-test_dataset = MiddleburyDataset_I(os.path.expanduser("~/disk/middlebury"), l,
+test_dataset = MiddleburyDataset(os.path.expanduser("~/disk/middlebury"), l,
                             crop_height=768, crop_width=1408)
+
+# test_dataset = MiddleburyDataset_I(os.path.expanduser("~/disk/middlebury"), l,
+#                             crop_height=768, crop_width=1408)
 
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
 

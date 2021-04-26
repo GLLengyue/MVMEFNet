@@ -18,8 +18,8 @@ def batch_PSNR(img, imclean, data_range):
         PSNR += compare_psnr(Iclean[i,:,:,:], Img[i,:,:,:], data_range=data_range)
     return (PSNR/Img.shape[0])
 
-def batch_mse(pred, disp):
+def batch_me(pred, disp):
     pred = pred.data.cpu().numpy().astype(np.float32)
     disp = disp.data.cpu().numpy().astype(np.float32)
 
-    return np.mean(np.square(pred-disp))
+    return np.mean(np.abs(pred-disp))
