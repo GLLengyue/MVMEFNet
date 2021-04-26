@@ -44,11 +44,13 @@ l = [
 
 BATCH_SIZE = 1
 LR = 1e-3
+CROP_HEIGHT = 256
+CROP_WIDTH = 512
 
 MAX_DISP=370
 
 train_dataset = MiddleburyDataset(os.path.expanduser('~/disk/middlebury'), l,
-                            crop_height=256, crop_width=512)
+                            crop_height=CROP_HEIGHT, crop_width=CROP_WIDTH)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
@@ -74,10 +76,10 @@ for epoch in range(save_num+1, 10000):
     e_PSNR = 0
     e_ME = 0
     for step, sample in enumerate(train_loader):
-        left, right, left_g, right_g, left_o, right_o, right_gt, disp = \
-        sample['left'], sample['right'], sample['left_g'], sample['right_g'], sample['left_o'], sample['right_o'], sample['right_gt'], sample['left_disparity']
+        left, right, left_g, right_g, left_o, right_o, warped_gt, right_gt, disp = \
+        sample['left'], sample['right'], sample['left_g'], sample['right_g'], sample['left_o'], sample['right_o'], sample['warped_gt'], sample['right_gt'], sample['left_disparity']
 
-        left, right, left_g, right_g, left_o, right_o, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), right_gt.cuda(), disp.cuda()
+        left, right, left_g, right_g, left_o, right_o, warped_gt, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), warped_gt.cuda(), right_gt.cuda(), disp.cuda()
         
         # DISP MASK
         mask = (disp <= MAX_DISP) & (disp >= 0)
@@ -98,9 +100,9 @@ for epoch in range(save_num+1, 10000):
         ME = batch_me(pred3[mask], disp[mask])
 
         # loss aggregation
-        g_loss = L1loss(result[:,:,:,:256], right_gt[:,:,:,:256])
+        g_loss = L1loss(result[:,:,:,:CROP_WIDTH//2], right_gt[:,:,:,:CROP_WIDTH//2])
         g_loss += L1loss(pred3[mask], disp[mask])
-        g_loss += L1loss(w_imgL_o[:,:,:,:256], right_o[:,:,:,:256])
+        g_loss += L1loss(w_imgL_o[:,:,:,:CROP_WIDTH//2], warped_gt[:,:,:,:CROP_WIDTH//2])
 
         if not np.isnan(ME):
             e_loss += g_loss.item()
