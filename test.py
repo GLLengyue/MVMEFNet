@@ -11,7 +11,7 @@ import math
 from math import exp
 from dataloader import MiddleburyDataset
 from models import MVMEFNet
-from utils import batch_PSNR, batch_mse
+from utils import batch_PSNR, batch_me
 import cv2
 import PIL
 
@@ -86,8 +86,8 @@ for step, sample in enumerate(test_loader):
     mask = (disp < 192) & (disp > 0)
 
     PSNR = batch_PSNR(torch.clamp(result, 0., 1.), right_gt, 1.)
-    MSE = batch_mse(pred3[mask], disp[mask])
+    ME = batch_me(pred3[mask], disp[mask])
 
-    print("[step %d][PSNR : %7f][MSE : %7f]" % (step, PSNR, MSE))
+    print("[step %d][PSNR : %7f][ME : %7f]" % (step, PSNR, ME))
 
     
