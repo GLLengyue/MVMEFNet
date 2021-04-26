@@ -16,6 +16,7 @@ class MiddleburyDataset(Dataset):
     def __init__(self, datapath, list_filenames, crop_width, crop_height):
         self.datapath = datapath
         self.left_filenames, self.right_filenames, self.right_gt_filenames, self.left_disp_filenames = self.load_path(list_filenames)
+        self.buffer = {}
         self.crop_width = crop_width
         self.crop_height = crop_height
         assert self.right_gt_filenames is not None
@@ -63,19 +64,12 @@ class MiddleburyDataset(Dataset):
                     continue
                 try:
                     names = os.listdir(tp)
-                    num = len(names)//2-1
-                    left_i = 0
-                    right_i = num-1
-
-                    if num > 3:
-                        r = num - 3
-                        left_i = r//2
-                        right_i = left_i + 2
-
-                    left_files.append(os.path.join(tp, 'im0e%d.png'%left_i))
-                    right_files.append(os.path.join(tp, 'im1e%d.png'%right_i))
-                    right_gt_files.append(os.path.join(tp, 'im1e%d.png'%(right_i-1)))
-                    left_disp_files.append(df)
+                    num = len(names)//2
+                    for i in range(0, num-2):
+                        left_files.append(os.path.join(tp, 'im0e%d.png'%i))
+                        right_files.append(os.path.join(tp, 'im1e%d.png'%(i+2)))
+                        right_gt_files.append(os.path.join(tp, 'im1e%d.png'%(i+1)))
+                        left_disp_files.append(df)
                 except:
                     continue
         return left_files, right_files, right_gt_files, left_disp_files
@@ -87,29 +81,43 @@ class MiddleburyDataset(Dataset):
         return len(self.left_filenames)
 
     def __getitem__(self, index):
-        left_img = self.load_image(os.path.join(self.datapath, self.left_filenames[index]))
-        right_img = self.load_image(os.path.join(self.datapath, self.right_filenames[index]))
+        if self.left_filenames[index] in self.buffer:
+            left_img = self.buffer[self.left_filenames[index]]
+        else:
+            left_img = self.load_image(self.left_filenames[index])
+            left_img = left_img.resize((left_img.size[0]//2, left_img.size[1]//2))
+            self.buffer[self.left_filenames[index]] = left_img
 
-        left_img = left_img.resize((left_img.size[0]//2, left_img.size[1]//2))
-        right_img = right_img.resize((right_img.size[0]//2, right_img.size[1]//2))
+        if self.right_filenames[index] in self.buffer:
+            right_img = self.buffer[self.right_filenames[index]]
+        else:    
+            right_img = self.load_image(self.right_filenames[index])
+            right_img = right_img.resize((right_img.size[0]//2, right_img.size[1]//2))
+            self.buffer[self.right_filenames[index]] = right_img
 
-        left_disp = pfm_imread(os.path.join(self.datapath, self.left_disp_filenames[index]))
-        left_disp = self.crop_disp(left_disp[0])
-        left_disp = cv2.resize(left_disp, None, fx=0.5, fy=0.5)
-        left_disp = left_disp/2
-        mask = (left_disp>0) & (left_disp<1000)
+        if self.left_disp_filenames[index] in self.buffer:
+            left_disp = self.buffer[self.left_disp_filenames[index]]
+        else:
+            left_disp = pfm_imread(self.left_disp_filenames[index])
+            left_disp = self.crop_disp(left_disp[0])
+            left_disp = cv2.resize(left_disp, None, fx=0.5, fy=0.5)
+            left_disp = left_disp/2
+            self.buffer[self.left_disp_filenames[index]] = left_disp
 
-        right_gt_img = self.load_image(os.path.join(self.datapath, self.right_gt_filenames[index]))
-        right_gt_img = right_gt_img.resize((right_gt_img.size[0]//2, right_gt_img.size[1]//2))
-        
-        
+        if self.right_gt_filenames[index] in self.buffer:
+            right_gt_img = self.buffer[self.right_gt_filenames[index]]
+        else:
+            right_gt_img = self.load_image(self.right_gt_filenames[index])
+            right_gt_img = right_gt_img.resize((right_gt_img.size[0]//2, right_gt_img.size[1]//2))
+            self.buffer[self.right_gt_filenames[index]] = right_gt_img
+
+        # random crop 
         w, h = left_img.size
         crop_w, crop_h = self.crop_width, self.crop_height
 
         x1 = random.randint(0, w - crop_w)
         y1 = random.randint(0, h - crop_h)
 
-        # random crop
         left_img = left_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
         right_img = right_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
         right_gt_img = right_gt_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
@@ -131,16 +139,6 @@ class MiddleburyDataset(Dataset):
 
         # to tensor, normalize
         processed = get_transform()
-        # left_orig = transforms.ToTensor()(left_img)
-        # right_orig = transforms.ToTensor()(right_img)
-
-        # left_img = processed(left_img_g)
-        # right_img = processed(right_img_g)
-
-        # left_img_g = transforms.ToTensor()(left_img_g)
-        # right_img_g = transforms.ToTensor()(right_img_g)
-
-        # right_gt_img = transforms.ToTensor()(right_gt_img)
 
         return {"left": processed(left_img_g),
                 "right": processed(right_img_g),
