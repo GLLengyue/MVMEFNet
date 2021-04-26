@@ -9,7 +9,7 @@ import numpy as np
 import time
 import math
 from math import exp
-from dataloader import MiddleburyDataset
+from dataloader import MiddleburyDataset, MiddleburyDataset_I
 from models import MVMEFNet
 from utils import batch_PSNR, batch_mse
 
@@ -47,7 +47,7 @@ LR = 1e-3
 
 MAX_DISP=370
 
-train_dataset = MiddleburyDataset(os.path.expanduser('~/disk/middlebury'), l,
+train_dataset = MiddleburyDataset_I(os.path.expanduser('~/disk/middlebury'), l,
                             crop_height=256, crop_width=512)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
@@ -55,7 +55,7 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE,
 model = MVMEFNet(max_disp=MAX_DISP)
 model = model.cuda()
 
-save_num = 2200
+save_num = -1
 model_path = './savepoints/%d.pkl'%save_num
 if os.path.exists(model_path):
     model_dict = torch.load(model_path)
@@ -89,7 +89,7 @@ for epoch in range(save_num+1, 10000):
         optimizer.zero_grad()
 
         # Generate a batch of images
-        pred1, pred2, pred3, w_imgL_o, result = model(left, right, left_g, right_g, left_o, right_o)
+        pred1, pred2, pred3, w_imgL_o, result, _ = model(left, right, left_g, right_g, left_o, right_o)
 
         # calculate PSNR
         PSNR = batch_PSNR(torch.clamp(result, 0., 1.), right_gt, 1.)

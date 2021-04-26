@@ -96,15 +96,10 @@ class AttentionNetwork(nn.Module):
         map1 = self.attention(feature1, refer)
         # map2 = self.attention(feature2, refer)
         feature_1 = torch.mul(feature1, map1)
-        tmp = map1.cpu().numpy()[0]
-        import numpy as np
-        import cv2
-        tmp = np.mean(tmp, axis=0)
-        cv2.imwrite('map.png', tmp*255)
         # feature_2 = torch.mul(feature2, map2)
         # out = torch.cat([feature_1, refer, feature_2], dim=1)
         out = torch.cat([feature_1, refer], dim=1)
-        return out, refer
+        return out, refer, map1
 
 class MergingNetwork(nn.Module):
     def __init__(self):
@@ -143,6 +138,6 @@ class AHDRNet(nn.Module):
         self.A = AttentionNetwork()
         self.M = MergingNetwork()
     def forward(self, x1, x2):
-        midout,ref = self.A(x1, x2)
+        midout,ref,a_map = self.A(x1, x2)
         finalout = self.M(midout, ref)
-        return finalout
+        return finalout,a_map

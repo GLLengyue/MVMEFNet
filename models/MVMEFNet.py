@@ -50,7 +50,7 @@ class MVMEFNet(nn.Module):
         imgL_cat = torch.cat((w_imgL_o, w_imgL_g), dim=1)
         imgR_cat = torch.cat((imgR_o, imgR_g), dim=1)
 
-        result = self.fusion_net(imgL_cat, imgR_cat)
+        result, a_map = self.fusion_net(imgL_cat, imgR_cat)
 
-        return pred1, pred2, pred3, w_imgL_o, result
+        return pred1, pred2, pred3, w_imgL_o, result, a_map
         
