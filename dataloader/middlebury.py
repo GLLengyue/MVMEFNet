@@ -87,14 +87,12 @@ class MiddleburyDataset(Dataset):
             left_img = self.buffer[self.left_filenames[index]]
         else:
             left_img = self.load_image(self.left_filenames[index])
-            left_img = left_img.resize((left_img.size[0]//2, left_img.size[1]//2))
             self.buffer[self.left_filenames[index]] = left_img
 
         if self.right_filenames[index] in self.buffer:
             right_img = self.buffer[self.right_filenames[index]]
         else:    
             right_img = self.load_image(self.right_filenames[index])
-            right_img = right_img.resize((right_img.size[0]//2, right_img.size[1]//2))
             self.buffer[self.right_filenames[index]] = right_img
 
         if self.left_disp_filenames[index] in self.buffer:
@@ -102,8 +100,6 @@ class MiddleburyDataset(Dataset):
         else:
             left_disp = pfm_imread(self.left_disp_filenames[index])
             left_disp = self.crop_disp(left_disp[0])
-            left_disp = cv2.resize(left_disp, None, fx=0.5, fy=0.5)
-            left_disp = left_disp/2
             self.buffer[self.left_disp_filenames[index]] = left_disp
 
         if self.right_gt_filenames[index] in self.buffer:
@@ -142,7 +138,7 @@ class MiddleburyDataset(Dataset):
 
         high_y = np.mean(cv2.cvtColor(left_img, cv2.COLOR_RGB2YUV)[:,:,0])
         low_y = np.mean(cv2.cvtColor(right_img, cv2.COLOR_RGB2YUV)[:,:,0])
-        mid_y = np.mean(cv2.cvtColor(right_gt_img, cv2.COLOR_RGB2YUV)[:,:,0])
+        mid_y = (high_y+low_y)/2
 
         # gamma
         left_img_g = np.power(left_img, high_y/mid_y)
