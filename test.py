@@ -10,7 +10,7 @@ import numpy as np
 import time
 import math
 from math import exp
-from dataloader import MiddleburyDataset, MiddleburyDataset_I
+from dataloader import MiddleburyDataset
 from models import MVMEFNet
 from utils import batch_PSNR, batch_me
 import cv2
