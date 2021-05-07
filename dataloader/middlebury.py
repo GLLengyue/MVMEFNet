@@ -60,18 +60,16 @@ class MiddleburyDataset(Dataset):
             for i in range(1, 5): 
                 df = os.path.join(self.datapath, cate, "disp0.pfm")
                 tp = os.path.join(self.datapath, cate, "L%s"%i)
-                if not os.path.isfile(os.path.join(tp, 'im0e0.png')):
-                    print(os.path.join(tp, 'im0e0.png'))
+                if not os.path.isfile(os.path.join(tp, 'im1ef.png')):
                     continue
                 try:
-                    names = os.listdir(tp)
-                    num = len(names)//2
-                    for i in range(0, num-2):
-                        left_files.append(os.path.join(tp, 'im0e%d.png'%i))
-                        right_files.append(os.path.join(tp, 'im1e%d.png'%(i+2)))
-                        warped_gt_files.append(os.path.join(tp, 'im1e%d.png'%i))
-                        right_gt_files.append(os.path.join(tp, 'im1e%d.png'%(i+1)))
-                        left_disp_files.append(df)
+                    with open(os.path.join(tp, 'LIST'), 'r') as f:
+                        names = f.readline().split(' ')
+                    left_files.append(os.path.join(tp, names[0].replace('im1', 'im0')))
+                    right_files.append(os.path.join(tp, names[-1]))
+                    warped_gt_files.append(os.path.join(tp, names[0]))
+                    right_gt_files.append(os.path.join(tp, 'im1ef.png'))
+                    left_disp_files.append(df)
                 except:
                     continue
         return left_files, right_files, warped_gt_files,right_gt_files, left_disp_files
