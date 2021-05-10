@@ -84,6 +84,9 @@ for epoch in range(save_num+1, 10000):
         # DISP MASK
         mask = (disp <= MAX_DISP) & (disp >= 0)
 
+        if torch.sum(mask) < 65536:
+            continue
+
         # -----------------
         #  Train model
         # -----------------
@@ -104,12 +107,12 @@ for epoch in range(save_num+1, 10000):
         g_loss += L1loss(pred3[mask], disp[mask])
         g_loss += L1loss(w_imgL_o[:,:,:,:CROP_WIDTH//2], warped_gt[:,:,:,:CROP_WIDTH//2])
 
-        if not np.isnan(ME):
+        if PSNR < 100:
             e_loss += g_loss.item()
             e_PSNR += PSNR
             e_ME += ME
             count+=1
-            print("\r[Epoch %d][Loss: %7f][PSNR : %7f][ME : %7f]" % (epoch, g_loss.item(), PSNR, ME), end='')
+        print("\r[Epoch %d][Loss: %7f][PSNR : %7f][ME : %7f]" % (epoch, g_loss.item(), PSNR, ME), end='')
         # else:
             # print(disp[mask])
         g_loss.backward()
@@ -119,6 +122,6 @@ for epoch in range(save_num+1, 10000):
     e_ME = e_ME/count
     print("\r[Epoch %d][Loss: %7f][PSNR : %7f][ME : %7f]" % (epoch, e_loss, e_PSNR, e_ME), end='\n')
     with open('losses.txt', 'a') as f:
-        f.write('[Loss: %7f]\n'%e_loss)
+        f.write("\r[Epoch %d][Loss: %7f][PSNR : %7f][ME : %7f]" % (epoch, e_loss, e_PSNR, e_ME))
     if (epoch % 100 == 0):
         torch.save(model.state_dict(), './savepoints/%d.pkl' % (epoch))
