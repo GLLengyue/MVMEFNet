@@ -1,14 +1,6 @@
 import os
-import random
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import Variable
-import torch.nn.functional as F
-import numpy as np
-import time
-import math
-from math import exp
 from dataloader import MiddleburyDataset
 from models import MVMEFNet
 from utils import batch_PSNR, batch_me
@@ -113,8 +105,7 @@ for epoch in range(save_num+1, 10000):
             e_ME += ME
             count+=1
         print("\r[Epoch %d][Loss: %7f][PSNR : %7f][ME : %7f]" % (epoch, g_loss.item(), PSNR, ME), end='')
-        # else:
-            # print(disp[mask])
+
         g_loss.backward()
         optimizer.step()
     e_loss = e_loss/count
