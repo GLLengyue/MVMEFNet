@@ -64,7 +64,7 @@ class MiddleburyDataset(Dataset):
                     continue
                 try:
                     with open(os.path.join(tp, 'LIST'), 'r') as f:
-                        names = f.readline().split(' ')
+                        names = f.readline().strip().split(' ')
                     left_files.append(os.path.join(tp, names[0].replace('im1', 'im0')))
                     right_files.append(os.path.join(tp, names[-1]))
                     warped_gt_files.append(os.path.join(tp, names[0]))
