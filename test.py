@@ -37,29 +37,23 @@ l = [
     # 'Recycle-perfect',
     # 'Shelves-perfect',
     # 'Shopvac-perfect',
-    # 'Sticks-perfect',
-    # 'Storage-perfect',
-    # 'Sword1-perfect',
-    # 'Sword2-perfect',
-    # 'Umbrella-perfect',
-    # 'Vintage-perfect'
- ]
+]
 
 BATCH_SIZE = 1
-LR = 1e-3
+MAX_DISP=370
 
 test_dataset = MiddleburyDataset(os.path.expanduser("~/disk/middlebury"), l,
-                            crop_height=768, crop_width=1408)
+                            crop_height=512, crop_width=768)
 
 # test_dataset = MiddleburyDataset_I(os.path.expanduser("~/disk/middlebury"), l,
 #                             crop_height=768, crop_width=1408)
 
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=1)
 
-model = MVMEFNet(max_disp=192)
+model = MVMEFNet(max_disp=MAX_DISP)
 model = model.cuda()
 
-save_num = 1100
+save_num = 400
 model_path = './savepoints/%d.pkl'%save_num
 if os.path.exists(model_path):
     model_dict = torch.load(model_path)
@@ -88,7 +82,7 @@ for step, sample in enumerate(test_loader):
     PIL.Image.fromarray(np.uint8(pred3.cpu().numpy()[0])).save('./test_out/%d_pred.png'%step)
     PIL.Image.fromarray(np.uint8(255*np.mean(a_map.cpu().numpy()[0], axis=0))).save('./test_out/%d_map.png'%step)
 
-    mask = (disp < 192) & (disp > 0)
+    mask = (disp < MAX_DISP) & (disp > 0)
 
     PSNR = batch_PSNR(torch.clamp(result, 0., 1.), right_gt, 1.)
     ME = batch_me(pred3[mask], disp[mask])

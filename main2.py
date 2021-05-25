@@ -1,5 +1,5 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 import torch
 import torch.nn as nn
 from dataloader import MiddleburyDataset
@@ -50,7 +50,7 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE,
 model = MVMEFNet(max_disp=MAX_DISP)
 model = model.cuda()
 
-save_num = 500
+save_num = -1
 model_path = './savepoints/%d.pkl'%save_num
 if os.path.exists(model_path):
     model_dict = torch.load(model_path)
@@ -83,7 +83,7 @@ for epoch in range(save_num+1, 10000):
         # DISP MASK
         mask = (disp <= MAX_DISP) & (disp >= 0)
 
-        if torch.sum(mask) < 65536:
+        if torch.sum(mask) < 256:
             continue
 
         # -----------------
@@ -119,7 +119,7 @@ for epoch in range(save_num+1, 10000):
     e_PSNR = e_PSNR/count
     e_ME = e_ME/count
     print("\r[Epoch %d][Loss: %7f][PSNR : %7f][ME : %7f]" % (epoch, e_loss, e_PSNR, e_ME), end='\n')
-    with open('losses.txt', 'a') as f:
+    with open('losses_2.txt', 'a') as f:
         f.write("\r[Epoch %d][Loss: %7f][PSNR : %7f][ME : %7f]" % (epoch, e_loss, e_PSNR, e_ME))
     if (epoch % 100 == 0):
-        torch.save(model.state_dict(), './savepoints/%d.pkl' % (epoch))
+        torch.save(model.state_dict(), './savepoints_2/%d.pkl' % (epoch))
