@@ -53,7 +53,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, s
 model = MVMEFNet(max_disp=MAX_DISP)
 model = model.cuda()
 
-save_num = 400
+save_num = 800
 model_path = './savepoints/%d.pkl'%save_num
 if os.path.exists(model_path):
     model_dict = torch.load(model_path)
@@ -74,17 +74,18 @@ for step, sample in enumerate(test_loader):
     left, right, left_g, right_g, left_o, right_o, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), right_gt.cuda(), disp.cuda()
 
     with torch.no_grad():
-        pred1, pred2, pred3, w_imgL_o, result, a_map = model(left, right, left_g, right_g, left_o, right_o)
+        pred1, pred2, pred3, w_imgL_o, result, a_map， result_r = model(left, right, left_g, right_g, left_o, right_o)
     
 
     PIL.Image.fromarray(np.uint8(w_imgL_o.cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_w_imgL_o.png'%step)
     PIL.Image.fromarray(np.uint8(torch.clamp(result, 0., 1.).cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_result.png'%step)
+    PIL.Image.fromarray(np.uint8(torch.clamp(result_r, 0., 1.).cpu().numpy()[0].transpose(1,2,0)*255)).save('./test_out/%d_result_r.png'%step)
     PIL.Image.fromarray(np.uint8(pred3.cpu().numpy()[0])).save('./test_out/%d_pred.png'%step)
     PIL.Image.fromarray(np.uint8(255*np.mean(a_map.cpu().numpy()[0], axis=0))).save('./test_out/%d_map.png'%step)
 
     mask = (disp < MAX_DISP) & (disp > 0)
 
-    PSNR = batch_PSNR(torch.clamp(result, 0., 1.), right_gt, 1.)
+    PSNR = batch_PSNR(torch.clamp(result_r, 0., 1.), right_gt, 1.)
     ME = batch_me(pred3[mask], disp[mask])
 
     print("[step %d][PSNR : %7f][ME : %7f]" % (step, PSNR, ME))
