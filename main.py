@@ -71,6 +71,7 @@ for epoch in range(save_num+1, 10000):
     e_loss = 0
     count = 0
     e_PSNR = 0
+    e_PSNR_r = 0
     e_ME = 0
     for step, sample in enumerate(train_loader):
         left, right, left_g, right_g, left_o, right_o, warped_gt, right_gt, disp = \
