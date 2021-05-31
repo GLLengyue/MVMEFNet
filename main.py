@@ -106,12 +106,13 @@ for epoch in range(save_num+1, 10000):
         ME = batch_me(pred3[mask], disp[mask])
 
         # loss aggregation
-        g_loss = L1loss(result[:,:,:,:CROP_WIDTH-MAX_DISP], right_gt[:,:,:,:CROP_WIDTH-MAX_DISP])
+        g_loss = L1loss(result, right_gt)
         g_loss += L1loss(pred3[mask], disp[mask])
-        t1 = torch.square(w_imgL_o-warped_gt)
-        t2 = torch.mean(a_map, dim=1)
-        g_loss += -torch.mean(a_map)
-        g_loss += torch.mean(t1*t2)
+        # g_loss += L1loss(w_imgL_o[mask], warped_gt[mask])
+        # t1 = torch.square(w_imgL_o-warped_gt)
+        # t2 = torch.mean(a_map, dim=1)
+        # g_loss += -torch.mean(a_map)
+        # g_loss += torch.mean(t1*t2)
 
         if PSNR < 100:
             e_loss += g_loss.item()
