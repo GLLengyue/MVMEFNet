@@ -42,15 +42,19 @@ CROP_WIDTH = 512
 
 MAX_DISP=370
 
+model = MVMEFNet(max_disp=MAX_DISP)
+
+# torch.distributed.init_process_group(backend="nccl")
+model = model.cuda()
+# model = nn.DataParallel(model)
+
 train_dataset = MiddleburyDataset(os.path.expanduser('~/disk/middlebury'), l,
                             crop_height=CROP_HEIGHT, crop_width=CROP_WIDTH)
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 
-model = MVMEFNet(max_disp=MAX_DISP)
-model = model.cuda()
 
-save_num = 500
+save_num = -1
 model_path = './savepoints/%d.pkl'%save_num
 if os.path.exists(model_path):
     model_dict = torch.load(model_path)
@@ -69,21 +73,21 @@ for epoch in range(save_num+1, 10000):
     e_PSNR = 0
     e_ME = 0
     for step, sample in enumerate(train_loader):
-        # left, right, left_g, right_g, left_o, right_o, warped_gt, right_gt, disp = \
-        # sample['left'], sample['right'], sample['left_g'], sample['right_g'], sample['left_o'], sample['right_o'], sample['warped_gt'], sample['right_gt'], sample['left_disparity']
+        left, right, left_g, right_g, left_o, right_o, warped_gt, right_gt, disp = \
+        sample['left'], sample['right'], sample['left_g'], sample['right_g'], sample['left_o'], sample['right_o'], sample['warped_gt'], sample['right_gt'], sample['left_disparity']
 
-        # left, right, left_g, right_g, left_o, right_o, warped_gt, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), warped_gt.cuda(), right_gt.cuda(), disp.cuda()
+        left, right, left_g, right_g, left_o, right_o, warped_gt, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), warped_gt.cuda(), right_gt.cuda(), disp.cuda()
         
-        left, right, left_g, right_g, left_o, right_o, right_gt, disp = \
-        sample['left'], sample['right'], sample['left_g'], sample['right_g'], sample['left_o'], sample['right_o'], sample['right_gt'], sample['left_disparity']
+        # left, right, left_g, right_g, left_o, right_o, right_gt, disp = \
+        # sample['left'], sample['right'], sample['left_g'], sample['right_g'], sample['left_o'], sample['right_o'], sample['right_gt'], sample['left_disparity']
 
-        left, right, left_g, right_g, left_o, right_o, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), right_gt.cuda(), disp.cuda()
+        # left, right, left_g, right_g, left_o, right_o, right_gt, disp = left.cuda(), right.cuda(), left_g.cuda(), right_g.cuda(), left_o.cuda(), right_o.cuda(), right_gt.cuda(), disp.cuda()
         
         
         # DISP MASK
         mask = (disp <= MAX_DISP) & (disp >= 0)
 
-        if torch.sum(mask) < 65536:
+        if torch.sum(mask) < 128*1024/4:
             continue
 
         # -----------------
@@ -93,7 +97,7 @@ for epoch in range(save_num+1, 10000):
         optimizer.zero_grad()
 
         # Generate a batch of images
-        pred1, pred2, pred3, w_imgL_o, result, _ = model(left, right, left_g, right_g, left_o, right_o)
+        pred1, pred2, pred3, w_imgL_o, result, a_map = model(left, right, left_g, right_g, left_o, right_o)
 
         # calculate PSNR
         PSNR = batch_PSNR(torch.clamp(result, 0., 1.), right_gt, 1.)
@@ -102,9 +106,12 @@ for epoch in range(save_num+1, 10000):
         ME = batch_me(pred3[mask], disp[mask])
 
         # loss aggregation
-        g_loss = L1loss(result[:,:,:,:CROP_WIDTH//2], right_gt[:,:,:,:CROP_WIDTH//2])
+        g_loss = L1loss(result[:,:,:,:CROP_WIDTH-MAX_DISP], right_gt[:,:,:,:CROP_WIDTH-MAX_DISP])
         g_loss += L1loss(pred3[mask], disp[mask])
-        # g_loss += L1loss(w_imgL_o[:,:,:,:CROP_WIDTH//2], warped_gt[:,:,:,:CROP_WIDTH//2])
+        t1 = torch.square(w_imgL_o-warped_gt)
+        t2 = torch.mean(a_map, dim=1)
+        g_loss += -torch.mean(a_map)
+        g_loss += torch.mean(t1*t2)
 
         if PSNR < 100:
             e_loss += g_loss.item()
