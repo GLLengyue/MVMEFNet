@@ -10,6 +10,7 @@ import cv2
 
 from .stackhourglass import PSMNet
 from .AHDR import AHDRNet
+from .Refine import RefineNet
 
 def warp(image, disp):
 
@@ -40,6 +41,7 @@ class MVMEFNet(nn.Module):
         super(MVMEFNet, self).__init__()
         self.disp_net = PSMNet(maxdisp=max_disp)
         self.fusion_net = AHDRNet()
+        self.refine_net = RefineNet()
     
     def forward(self, imgL_d, imgR_d, imgL_g, imgR_g, imgL_o, imgR_o):
         pred1, pred2, pred3 = self.disp_net(imgL_d, imgR_d)
@@ -52,5 +54,7 @@ class MVMEFNet(nn.Module):
 
         result, a_map = self.fusion_net(imgL_cat, imgR_cat)
 
-        return pred1, pred2, pred3, w_imgL_o, result, a_map
+        result_r = self.refine_net(result)
+
+        return pred1, pred2, pred3, w_imgL_o, result, a_map, result_r
         
