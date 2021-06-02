@@ -86,7 +86,7 @@ class DRDB(nn.Module):
 class AttentionNetwork(nn.Module):
     def __init__(self):
         super(AttentionNetwork, self).__init__()
-        self.encoder = Encoder1Conv(6, 64)
+        self.encoder = Encoder3Conv(6, 64)
         self.attention = AttentionModule()
  
     def forward(self, x1, x2):
