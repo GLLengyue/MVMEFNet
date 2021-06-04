@@ -109,7 +109,7 @@ for epoch in range(save_num+1, 10000):
         ME = batch_me(pred3[mask], disp[mask])
 
         # loss aggregation
-        g_loss = L1loss(result, right_gt)
+        g_loss = L1loss(result[:,:,:,:CROP_WIDTH-MAX_DISP], right_gt[:,:,:,:CROP_WIDTH-MAX_DISP])
         # g_loss += L1loss(result_r, right_gt)
         g_loss += L1loss(pred3[mask], disp[mask])
         g_loss += L1loss(w_imgL_o[:,:,:,:CROP_WIDTH-MAX_DISP], warped_gt[:,:,:,:CROP_WIDTH-MAX_DISP])
