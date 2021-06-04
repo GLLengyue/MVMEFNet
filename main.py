@@ -112,7 +112,7 @@ for epoch in range(save_num+1, 10000):
         g_loss = L1loss(result, right_gt)
         # g_loss += L1loss(result_r, right_gt)
         g_loss += L1loss(pred3[mask], disp[mask])
-        # g_loss += L1loss(w_imgL_o[:,:,:,:CROP_WIDTH//2], warped_gt[:,:,:,:CROP_WIDTH//2])
+        g_loss += L1loss(w_imgL_o[:,:,:,:CROP_WIDTH//2], warped_gt[:,:,:,:CROP_WIDTH//2])
         # t1 = torch.square(w_imgL_o-warped_gt)
         # t2 = torch.mean(a_map, dim=1)
         # g_loss += torch.mean(t1*t2)/torch.mean(t2)

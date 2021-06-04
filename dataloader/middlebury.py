@@ -140,8 +140,8 @@ class MiddleburyDataset(Dataset):
         high_y = np.mean(cv2.cvtColor(left_img, cv2.COLOR_RGB2YUV)[:,:,0])
         low_y = np.mean(cv2.cvtColor(right_img, cv2.COLOR_RGB2YUV)[:,:,0])
         # low_y = np.mean(cv2.cvtColor(right_img, cv2.COLOR_RGB2YUV)[:,:,0])
-        mid_y = high_y
-        # mid_y = low_y
+        # mid_y = high_y
+        mid_y = (low_y+high_y)/2
 
         # gamma
         left_img_g = np.power(left_img, high_y/mid_y)
