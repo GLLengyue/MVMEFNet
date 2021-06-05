@@ -15,7 +15,7 @@ from .data_io import get_transform, read_all_lines, pfm_imread
 class MiddleburyDataset(Dataset):
     def __init__(self, datapath, list_filenames, crop_width, crop_height):
         self.datapath = datapath
-        self.left_filenames, self.right_filenames, self.warped_gt_filenames, self.right_gt_filenames, self.left_disp_filenames = self.load_path(list_filenames)
+        self.left_filenames, self.right_filenames, self.warped_gt_filenames, self.right_gt_filenames, self.left_disp_filenames, self.mid_filenames = self.load_path(list_filenames)
         self.buffer = {}
         self.crop_width = crop_width
         self.crop_height = crop_height
@@ -55,6 +55,7 @@ class MiddleburyDataset(Dataset):
         warped_gt_files = []
         right_gt_files = []
         left_disp_files = []
+        mid_files = []
         
         for cate in l:
             for i in range(1, 5): 
@@ -70,9 +71,10 @@ class MiddleburyDataset(Dataset):
                     warped_gt_files.append(os.path.join(tp, names[0]))
                     right_gt_files.append(os.path.join(tp, 'im1ef.png'))
                     left_disp_files.append(df)
+                    mid_files.append(os.path.join(tp, names[1]))
                 except:
                     continue
-        return left_files, right_files, warped_gt_files,right_gt_files, left_disp_files
+        return left_files, right_files, warped_gt_files,right_gt_files, left_disp_files, mid_files
 
     def load_image(self, filename):
         return self.crop_image(Image.open(filename).convert('RGB'))
@@ -94,7 +96,8 @@ class MiddleburyDataset(Dataset):
         right_img = self.load_image(self.right_filenames[index])
         right_img = right_img.resize((right_img.size[0]//2, right_img.size[1]//2))
             # self.buffer[self.right_filenames[index]] = right_img
-
+        mid_img = self.load_image(self.mid_filenames[index])
+        mid_img = mid_img.resize((mid_img.size[0]//2, mid_img.size[1]//2))
         # if self.left_disp_filenames[index] in self.buffer:
         #     left_disp = self.buffer[self.left_disp_filenames[index]]
         # else:
@@ -126,6 +129,7 @@ class MiddleburyDataset(Dataset):
 
         left_img = left_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
         right_img = right_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
+        mid_img = mid_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
         right_gt_img = right_gt_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
         warped_gt_img = warped_gt_img.crop((x1, y1, x1 + crop_w, y1 + crop_h))
         
@@ -134,6 +138,7 @@ class MiddleburyDataset(Dataset):
         # to CV2
         left_img = np.asarray(left_img, dtype='float32')/255
         right_img = np.asarray(right_img, dtype='float32')/255
+        mid_img = np.asarray(mid_img, dtype='float32')/255
         right_gt_img = np.asarray(right_gt_img, dtype='float32')/255
         warped_gt_img = np.asarray(warped_gt_img, dtype='float32')/255
 
@@ -142,7 +147,7 @@ class MiddleburyDataset(Dataset):
         # low_y = np.mean(cv2.cvtColor(right_img, cv2.COLOR_RGB2YUV)[:,:,0])
         # mid_y = high_y
         # mid_y = low_y
-        mid_y = np.mean(cv2.cvtColor(right_gt_img, cv2.COLOR_RGB2YUV)[:,:,0])
+        mid_y = np.mean(cv2.cvtColor(mid_img, cv2.COLOR_RGB2YUV)[:,:,0])
 
         # gamma
         left_img_g = np.power(left_img, high_y/mid_y)
