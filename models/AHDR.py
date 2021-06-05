@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from .DCN import DeformConv2d
 
 class Encoder3Conv(nn.Module):
     def __init__(self, in_ch, out_ch):
@@ -10,7 +11,7 @@ class Encoder3Conv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_ch, out_ch, 3, padding=1, padding_mode='zeros'),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_ch, out_ch, 3, padding=1, padding_mode='zeros'),
+            DeformConv2d(out_ch, out_ch),
             nn.ReLU(inplace=True),
         )
     def forward(self, x):
