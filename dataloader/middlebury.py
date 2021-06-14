@@ -150,8 +150,10 @@ class MiddleburyDataset(Dataset):
         mid_y = np.mean(cv2.cvtColor(right_gt_img, cv2.COLOR_RGB2YUV)[:,:,0])
 
         # gamma
-        left_img_g = np.power(left_img, high_y/mid_y)
-        right_img_g = np.power(right_img, low_y/mid_y)
+        left_img_g = np.power(left_img, 2.2)
+        right_img_g = np.power(right_img, 2.2)
+        # with open('y.txt', 'a') as f:
+        #     f.write(str([high_y, low_y, mid_y]))
 
         # to tensor, normalize
         processed = get_transform()
