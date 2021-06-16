@@ -104,6 +104,7 @@ class MiddleburyDataset(Dataset):
         left_disp = pfm_imread(self.left_disp_filenames[index])
         left_disp = self.crop_disp(left_disp[0])
         left_disp = cv2.resize(left_disp, None, fx=0.5, fy=0.5)
+        left_disp = left_disp/2
             # self.buffer[self.left_disp_filenames[index]] = left_disp
 
         # if self.right_gt_filenames[index] in self.buffer:
